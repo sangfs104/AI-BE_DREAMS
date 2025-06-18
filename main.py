@@ -47,3 +47,23 @@ async def search_image(image: UploadFile = File(...)):
         results.append(item)
 
     return results
+#thêm chức năng thử đồ ảo
+@app.post("/tryon")
+async def tryon(
+    photo: UploadFile = File(...),
+    product_image: UploadFile = File(...)
+):
+    # Đọc ảnh người dùng
+    user_img = Image.open(photo.file).convert("RGBA")
+    # Đọc ảnh sản phẩm (ví dụ: áo, kính...)
+    prod_img = Image.open(product_image.file).convert("RGBA")
+
+    # Resize sản phẩm cho phù hợp (ví dụ: overlay lên góc trái)
+    prod_img = prod_img.resize((int(user_img.width/2), int(user_img.height/2)))
+    user_img.paste(prod_img, (0, 0), prod_img)
+
+    # Lưu vào buffer
+    buf = io.BytesIO()
+    user_img.convert("RGB").save(buf, format='JPEG')
+    buf.seek(0)
+    return StreamingResponse(buf, media_type="image/jpeg")
